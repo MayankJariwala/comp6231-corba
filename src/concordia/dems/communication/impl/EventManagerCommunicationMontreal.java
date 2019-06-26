@@ -194,14 +194,13 @@ public class EventManagerCommunicationMontreal extends IEventManagerCommunicatio
 		addResponse = this.swapOperationBookEvent(unWrappingRequest, customerId, newEventId, newEventType);
 		responseStatus = addResponse.split("-")[0].trim();
 		if (responseStatus.equalsIgnoreCase("success")) {
-			String finalResponse = responseStatus;
 			// Remove User From Existing Event
 			String oldEventId = swapEventdata[3];
 			// swapEventdata[4] = Old Event Type are ignore during cancellation process
 			cancelResponse = this.swapOperationCancelEvent(unWrappingRequest, customerId, oldEventId);
 			responseStatus = cancelResponse.split("-")[0].trim();
 			if (responseStatus.equalsIgnoreCase("success")) {
-				return finalResponse + "||" + responseStatus;
+				return addResponse + "||" + cancelResponse;
 			} else if (responseStatus.equalsIgnoreCase("rejected")) {
 				cancelResponse = this.swapOperationCancelEvent(unWrappingRequest, newEventId, newEventType);
 				return "Swap Operation cannot be performed,because the cancellation process is rejected for event "
