@@ -105,14 +105,14 @@ public class EventManagerDatabaseMontrealImpl implements IEventManagerDatabase {
                 eventData.get(eventType).get(eventID).getCustomers().add(customerID);
                 eventData.get(eventType).get(eventID).setRemainingCapacity(eventData.get(eventType).get(eventID).getRemainingCapacity() - 1);
                 Logger.writeLogToFile("server", "montrealServer", "bookEvent", "event booked for customer " + customerID, Constants.TIME_STAMP);
-                return ("Event : " + eventID + " booked for customer : " + customerID);
+                return ("Success - Event : " + eventID + " booked for customer : " + customerID);
             } else {
                 Logger.writeLogToFile("server", "montrealServer", "bookEvent", "Capacity is full", Constants.TIME_STAMP);
-                return ("Event : " + eventID + " capacity full");
+                return ("Rejected - Event : " + eventID + " capacity full");
             }
         }
         Logger.writeLogToFile("server", "montrealServer", "bookEvent", "no such event found for event id " + eventID, Constants.TIME_STAMP);
-        return ("Event : " + eventID + " not found");
+        return ("Rejected - Event : " + eventID + " not found");
     }
 
     /**

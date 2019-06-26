@@ -100,14 +100,14 @@ public class EventManagerDatabaseOttawaImpl implements IEventManagerDatabase {
                 eventData.get(eventType).get(eventID).addCustomer(customerID);
                 eventData.get(eventType).get(eventID).setRemainingCapacity(eventData.get(eventType).get(eventID).getRemainingCapacity() - 1);
                 Logger.writeLogToFile("server", "ottawaServer", "bookEvent", "event booked for customer " + customerID, Constants.TIME_STAMP);
-                return ("Event : " + eventID + " booked for customer : " + customerID);
+                return ("Success - Event : " + eventID + " booked for customer : " + customerID);
             } else {
                 Logger.writeLogToFile("server", "ottawaServer", "bookEvent", "Capacity is full", Constants.TIME_STAMP);
-                return ("Event : " + eventID + " capacity full");
+                return ("Rejected - Event : " + eventID + " capacity full");
             }
         }
         Logger.writeLogToFile("server", "ottawaServer", "bookEvent", "no such event found for event id " + eventID, Constants.TIME_STAMP);
-        return ("Event : " + eventID + " not found");
+        return ("Rejected - Event : " + eventID + " not found");
     }
 
     /**
