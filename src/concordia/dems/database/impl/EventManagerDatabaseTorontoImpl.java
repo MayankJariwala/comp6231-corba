@@ -164,10 +164,10 @@ public class EventManagerDatabaseTorontoImpl implements IEventManagerDatabase {
             eventToCancel.setRemainingCapacity(eventToCancel.getRemainingCapacity() + 1);
             eventToCancel.removeCustomer(customerID);
             Logger.writeLogToFile("server", "torontoServer", "cancelEvent", "event cancel for " + customerID + " in " + eventID, Constants.TIME_STAMP);
-            return ("event cancel for " + customerID + " in " + eventID);
+            return ("Success - event cancel for " + customerID + " in " + eventID);
         }
         Logger.writeLogToFile("server", "torontoServer", "cancelEvent", "event cancel rejected for " + customerID + " in " + eventID + " event not found", Constants.TIME_STAMP);
-        return "customer : " + customerID + " is not booked for event :" + eventID;
+        return "Rejected - customer : " + customerID + " is not booked for event :" + eventID;
     }
 
     /**
