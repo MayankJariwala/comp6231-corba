@@ -60,6 +60,12 @@ public class CustomerClient {
 					Logger.writeLogToFile("client", customerId, requestBody, bookingScheduleResponse,
 							Constants.TIME_STAMP);
 					break;
+				case EventOperation.SWAP_EVENT:
+					requestBody = from + "," + this.swapEvent(customerId);
+					String swapEventResponse = communication.performOperation(requestBody);
+					System.out.println(swapEventResponse);
+					Logger.writeLogToFile("client", customerId, requestBody, swapEventResponse, Constants.TIME_STAMP);
+					break;
 				}
 				readInput.nextLine();
 			} catch (Exception e) {
@@ -70,15 +76,21 @@ public class CustomerClient {
 	}
 
 	/**
+	 * Swap Event Function will allow user to swap the old event with new event
 	 * 
-	 * @return
+	 * @return String Request Body
 	 */
 	private String swapEvent(String customerID) {
-		String newEventID = readInput.next();
-		String newEventType = readInput.next();
-		String oldEventID = readInput.next();
-		String oldEventType = readInput.next();
-		return null;
+		String requestBody = customerID;
+		System.out.print("Enter NEW EVENT ID : ");
+		requestBody += "," + readInput.next();
+		System.out.print("Enter NEW EVENT Type(SEMINAR/CONFERENCE/TRADESHOW) : ");
+		requestBody += "," + readInput.next();
+		System.out.print("Enter OLD EVENT ID : ");
+		requestBody += "," + readInput.next();
+		System.out.print("Enter OLD EVENT Type(SEMINAR/CONFERENCE/TRADESHOW) : ");
+		requestBody += "," + readInput.next();
+		return " " + "," + EventOperation.SWAP_EVENT + "," + requestBody;
 	}
 
 	/**
