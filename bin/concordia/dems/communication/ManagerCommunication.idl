@@ -3,6 +3,7 @@ module concordia{
 		module communication{ 
 			interface IEventManagerCommunication{
 				string performOperation(in string userRequest);
+				oneway void shutdown();
 			};
 		};
 	};

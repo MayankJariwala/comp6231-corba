@@ -2,7 +2,7 @@ package concordia.dems.client;
 
 import concordia.dems.communication.IEventManagerCommunication;
 import concordia.dems.helpers.EventOperation;
-import concordia.dems.model.RMIServerFactory;
+import concordia.dems.model.ORBServerFactory;
 import concordia.dems.model.enumeration.EventBatch;
 import concordia.dems.model.enumeration.EventType;
 import concordia.dems.model.enumeration.Servers;
@@ -23,7 +23,7 @@ public class MultithreadingDemo {
 	}
 
 	private void executeThreadOperations() {
-		iEventManagerCommunication = RMIServerFactory.getInstance(Servers.MONTREAL);
+		iEventManagerCommunication = ORBServerFactory.getInstance(Servers.MONTREAL);
 		Runnable manager = () -> {
 			String requestBody = "montreal,montreal," + EventOperation.ADD_EVENT + ",MTLA181019," + EventType.SEMINAR
 					+ "," + EventBatch.AFTERNOON + "," + 2;

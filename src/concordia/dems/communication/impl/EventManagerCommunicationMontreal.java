@@ -1,5 +1,7 @@
 package concordia.dems.communication.impl;
 
+import java.rmi.RemoteException;
+
 import org.omg.CORBA.ORB;
 import org.omg.CosNaming.NameComponent;
 import org.omg.CosNaming.NamingContextExt;
@@ -13,16 +15,16 @@ import concordia.dems.communication.IEventManagerCommunicationPOA;
 import concordia.dems.helpers.Constants;
 import concordia.dems.helpers.EventOperation;
 import concordia.dems.helpers.Helper;
-import concordia.dems.servers.TorontoUDPClient;
+import concordia.dems.servers.MontrealUDPClient;
 
-public class EventManagerCommunicationToronto extends IEventManagerCommunicationPOA {
+public class EventManagerCommunicationMontreal extends IEventManagerCommunicationPOA {
 
-	private TorontoUDPClient torontoUDPClient;
+	private MontrealUDPClient montrealUDPClient;
 	private ORB orb = null;
 
-	protected EventManagerCommunicationToronto() {
+	protected EventManagerCommunicationMontreal() throws RemoteException {
 		super();
-		torontoUDPClient = new TorontoUDPClient();
+		montrealUDPClient = new MontrealUDPClient();
 	}
 
 	private void setOrb(ORB orb_val) {
@@ -39,12 +41,12 @@ public class EventManagerCommunicationToronto extends IEventManagerCommunication
 			rootPoa.the_POAManager().activate();
 
 			// create servant and register it with the ORB
-			EventManagerCommunicationToronto communication = new EventManagerCommunicationToronto();
+			EventManagerCommunicationMontreal communication = new EventManagerCommunicationMontreal();
 			communication.setOrb(orbObj);
 			org.omg.CORBA.Object ref = rootPoa.servant_to_reference(communication);
 
 			// and cast the reference to a CORBA reference
-			IEventManagerCommunication communicationToronto = IEventManagerCommunicationHelper.narrow(ref);
+			IEventManagerCommunication montrealCommunication = IEventManagerCommunicationHelper.narrow(ref);
 			// get the root naming context
 			// NameService invokes the transient name service
 			org.omg.CORBA.Object objRef = orbObj.resolve_initial_references("NameService");
@@ -53,9 +55,9 @@ public class EventManagerCommunicationToronto extends IEventManagerCommunication
 			NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
 
 			// bind the Object Reference in Naming
-			NameComponent path[] = ncRef.to_name(Constants.TOR_ORB_URL);
-			ncRef.rebind(path, communicationToronto);
-			System.out.println("Rock and Roll with Toronto Server ...");
+			NameComponent path[] = ncRef.to_name(Constants.MTL_ORB_URL);
+			ncRef.rebind(path, montrealCommunication);
+			System.out.println("Rock and Roll with Montreal Server ...");
 			while (true) {
 				orbObj.run();
 			}
@@ -66,6 +68,9 @@ public class EventManagerCommunicationToronto extends IEventManagerCommunication
 	}
 
 	/**
+	 * The one which is responsible to call business layer of montreal or to call an
+	 * UDP of other server
+	 *
 	 * @param userRequest: Either Manager or Customer
 	 */
 	@Override
@@ -89,27 +94,25 @@ public class EventManagerCommunicationToronto extends IEventManagerCommunication
 
 		switch (unWrappingRequest[Constants.TO_INDEX]) {
 		case "montreal":
+			return montrealUDPClient.sendMessageToMontrealUDP(userRequest);
+		case "toronto":
 			if (unWrappingRequest[Constants.ACTION_INDEX].equals(EventOperation.BOOK_EVENT)) {
 				unWrappingRequest[Constants.ACTION_INDEX] = EventOperation.GET_BOOKING_SCHEDULE;
 				boolean isNotEligible = isCustomerEligibleForBookingEvent(unWrappingRequest);
 				if (isNotEligible)
 					return "Limit Exceeded! You have been already registered for 3 events for a specific month";
-				return torontoUDPClient.sendMessageToMontrealUDP(userRequest);
+				return montrealUDPClient.sendMessageToTorontoUDP(userRequest);
 			} else
-				return torontoUDPClient.sendMessageToMontrealUDP(userRequest);
-
-		case "toronto":
-			return torontoUDPClient.sendMessageToTorontoUDP(userRequest);
-
+				return montrealUDPClient.sendMessageToTorontoUDP(userRequest);
 		case "ottawa":
 			if (unWrappingRequest[Constants.ACTION_INDEX].equals(EventOperation.BOOK_EVENT)) {
 				unWrappingRequest[Constants.ACTION_INDEX] = EventOperation.GET_BOOKING_SCHEDULE;
 				boolean isNotEligible = isCustomerEligibleForBookingEvent(unWrappingRequest);
 				if (isNotEligible)
 					return "Limit Exceeded! You have been already registered for 3 events for a specific month";
-				return torontoUDPClient.sendMessageToOttawaUDP(userRequest);
+				return montrealUDPClient.sendMessageToOttawaUDP(userRequest);
 			} else
-				return torontoUDPClient.sendMessageToOttawaUDP(userRequest);
+				return montrealUDPClient.sendMessageToOttawaUDP(userRequest);
 		}
 		return "";
 	}
@@ -119,25 +122,29 @@ public class EventManagerCommunicationToronto extends IEventManagerCommunication
 	}
 
 	private String getEventAvailabilityFromAllServers(String userRequest) {
-		String torontoEvents = torontoUDPClient.sendMessageToTorontoUDP(userRequest);
-		String ottawaEvents = torontoUDPClient.sendMessageToOttawaUDP(userRequest);
-		String montrealEvents = torontoUDPClient.sendMessageToMontrealUDP(userRequest);
-		return String.join("\n", torontoEvents, ottawaEvents, montrealEvents);
+		String torontoEvents = montrealUDPClient.sendMessageToTorontoUDP(userRequest);
+		String ottawaEvents = montrealUDPClient.sendMessageToOttawaUDP(userRequest);
+		String montrealEvents = montrealUDPClient.sendMessageToMontrealUDP(userRequest);
+		return String.join("\n", torontoEvents == "" ? "No toronto Events" : torontoEvents,
+				ottawaEvents == "" ? "No Ottawa Events" : ottawaEvents,
+				montrealEvents == "" ? "No Montreal Events" : montrealEvents);
 	}
 
 	private String getBookingScheduleForClients(String userRequest) {
-		String torontoEvents = torontoUDPClient.sendMessageToTorontoUDP(userRequest);
-		String ottawaEvents = torontoUDPClient.sendMessageToOttawaUDP(userRequest);
-		String montrealEvents = torontoUDPClient.sendMessageToMontrealUDP(userRequest);
-		return String.join("\n", torontoEvents, ottawaEvents, montrealEvents);
+		String torontoEventsSchedule = montrealUDPClient.sendMessageToTorontoUDP(userRequest);
+		String ottawaEventsSchedule = montrealUDPClient.sendMessageToOttawaUDP(userRequest);
+		String montrealEventsSchedule = montrealUDPClient.sendMessageToMontrealUDP(userRequest);
+		return String.join("\n", torontoEventsSchedule == "" ? "No toronto schedule" : torontoEventsSchedule,
+				ottawaEventsSchedule == "" ? "No Ottawa schedule" : ottawaEventsSchedule,
+				montrealEventsSchedule == "" ? "No Montreal schedule" : montrealEventsSchedule);
 	}
 
 	private boolean isCustomerEligibleForBookingEvent(String[] unWrappingRequest) {
-		String ottawaEvents = torontoUDPClient
+		String torontoEvents = montrealUDPClient
+				.sendMessageToTorontoUDP(generateStringForUnwrappingRequest(unWrappingRequest));
+		String ottawaEvents = montrealUDPClient
 				.sendMessageToOttawaUDP(generateStringForUnwrappingRequest(unWrappingRequest));
-		String montrealEvents = torontoUDPClient
-				.sendMessageToMontrealUDP(generateStringForUnwrappingRequest(unWrappingRequest));
-		return Helper.checkIfEqualMoreThanThree(ottawaEvents, montrealEvents,
+		return Helper.checkIfEqualMoreThanThree(torontoEvents, ottawaEvents,
 				unWrappingRequest[Constants.INFORMATION_INDEX]);
 	}
 

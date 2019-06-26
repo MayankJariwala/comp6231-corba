@@ -10,7 +10,7 @@ import concordia.dems.helpers.EventOperation;
 import concordia.dems.helpers.Helper;
 import concordia.dems.helpers.Logger;
 import concordia.dems.helpers.ManagerAndClientInfo;
-import concordia.dems.model.RMIServerFactory;
+import concordia.dems.model.ORBServerFactory;
 import concordia.dems.model.enumeration.EventType;
 import concordia.dems.model.enumeration.Servers;
 
@@ -33,12 +33,12 @@ public class ManagerClient {
 
 	private void execute() {
 		String customerId, eventInfo, response, requestBody;
-		System.err.print("Enter your id : ");
-		String managerID = scanner.nextLine();
-		Servers servers = Helper.getServerFromId(managerID);
-		String from = Helper.getServerNameFromID(managerID);
-		iEventManagerCommunication = RMIServerFactory.getInstance(servers);
 		while (true) {
+			System.out.print("Enter your id : ");
+			String managerID = scanner.nextLine();
+			Servers servers = Helper.getServerFromId(managerID);
+			String from = Helper.getServerNameFromID(managerID);
+			iEventManagerCommunication = ORBServerFactory.getInstance(servers);
 			showManagerOperations();
 			int operationID = scanner.nextInt();
 			String operationName = ManagerAndClientInfo.managerOperations.get(operationID - 1);
@@ -89,6 +89,7 @@ public class ManagerClient {
 					Logger.writeLogToFile("client", managerID, requestBody, response, Constants.TIME_STAMP);
 					break;
 				}
+				scanner.nextLine();
 			} catch (Exception e) {
 				System.err.print("Exception message " + e.getMessage());
 			}
@@ -121,7 +122,6 @@ public class ManagerClient {
 		String eventType = scanner.next();
 		System.err.print("Enter event booking capacity : ");
 		int bookingCapacity = scanner.nextInt();
-		System.out.println("Generated Event ID is : " + eventID);
 		String to = Helper.getServerNameFromID(eventID);
 		newEventInfo = to + "," + EventOperation.ADD_EVENT + "," + eventID + "," + eventType + "," + eventBatch + ","
 				+ bookingCapacity;

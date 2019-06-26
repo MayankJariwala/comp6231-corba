@@ -9,7 +9,7 @@ import concordia.dems.helpers.EventOperation;
 import concordia.dems.helpers.Helper;
 import concordia.dems.helpers.Logger;
 import concordia.dems.helpers.ManagerAndClientInfo;
-import concordia.dems.model.RMIServerFactory;
+import concordia.dems.model.ORBServerFactory;
 import concordia.dems.model.enumeration.Servers;
 
 /**
@@ -28,13 +28,13 @@ public class CustomerClient {
 
 	private void execute() {
 		String customerId;
-		System.out.print("Enter your id : ");
-		customerId = readInput.nextLine();
-		String from = Helper.getServerNameFromID(customerId);
-		Servers server = Helper.getServerFromId(customerId);
-		IEventManagerCommunication communication = RMIServerFactory.getInstance(server);
-		String requestBody;
 		while (true) {
+			System.out.print("Enter your id : ");
+			customerId = readInput.nextLine();
+			String from = Helper.getServerNameFromID(customerId);
+			Servers server = Helper.getServerFromId(customerId);
+			IEventManagerCommunication communication = ORBServerFactory.getInstance(server);
+			String requestBody;
 			try {
 				listCustomerOperations();
 				System.out.print("Select operation id : ");
@@ -61,12 +61,24 @@ public class CustomerClient {
 							Constants.TIME_STAMP);
 					break;
 				}
+				readInput.nextLine();
 			} catch (Exception e) {
 				e.printStackTrace();
 				System.out.println(e.getMessage());
 			}
 		}
+	}
 
+	/**
+	 * 
+	 * @return
+	 */
+	private String swapEvent(String customerID) {
+		String newEventID = readInput.next();
+		String newEventType = readInput.next();
+		String oldEventID = readInput.next();
+		String oldEventType = readInput.next();
+		return null;
 	}
 
 	/**
@@ -76,11 +88,11 @@ public class CustomerClient {
 	 */
 	private String bookEventInformation(String customerID) {
 		String requestBody = customerID;
-		System.err.print("Enter EVENT ID : ");
+		System.out.print("Enter EVENT ID : ");
 		String eventID = readInput.next();
 		String to = Helper.getServerNameFromID(eventID);
 		requestBody += "," + eventID;
-		System.err.print("Enter EVENT Type(SEMINAR/CONFERENCE/TRADESHOW) : ");
+		System.out.print("Enter EVENT Type(SEMINAR/CONFERENCE/TRADESHOW) : ");
 		requestBody += "," + readInput.next();
 		return to + "," + EventOperation.BOOK_EVENT + "," + requestBody;
 	}
